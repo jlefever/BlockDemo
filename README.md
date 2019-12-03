@@ -7,29 +7,31 @@ BlockDemo consists of two projects, a Kotlin/JVM server application and a React/
 First, change into the `frontend/` directory and build.
 
 ```
-npm install        # Install node depandancies (this should only have to be run once.)
+npm install        # Install node dependencies (this should only have to be run once.)
 npm run build      # Build the react project
-npm run copybuild  # Copy the built React project to resources to be served by Ktor
+npm run copybuild  # Copy the built react project to resources to be served by Ktor
 ```
 
-Now, we can build or run the server (which will also serve the frontend.)
+Now, we can build or run the server (which will also serve the frontend.) We include gradle wrapper in this repository. Use `gradlew.bat` on Windows or `gradlew` on Linux / macOS.
 
-On Windows,
+Change back into the root directory and
+
 ```
 gradlew.bat build
 ```
 
-On macOs / Linux,
-```
-./gradlew build
-```
-
-## Run
+Or to just run use
 
 ```
 gradlew.bat
 ```
 
-# Deployment
+The resulting jar in `build/libs` contains the entire application and could be run with just `java -jar`.
 
-The build process creates a self-contained fat jar. We include a Dockerfile that will use that jar to create an image that can be deployed on something like Amazon ECS.
+# Deploy
+
+The build process creates a self-contained fat jar. We include a Dockerfile that can use that jar to create a self-contained image that can be deployed on something like Amazon ECS.
+
+```
+docker build .
+```
