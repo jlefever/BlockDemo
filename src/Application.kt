@@ -25,7 +25,7 @@ fun Application.module(testing: Boolean = false) {
         get("/") {
             call.respondText("Hello, World!")
         }
-        get("/cities") {
+        get("/api/cities") {
             call.respond(
                 arrayOf(
                     City("New York City", "NY"),
