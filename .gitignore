@@ -5,3 +5,8 @@
 *.iml
 *.ipr
 *.iws
+
+/frontend/build
+/frontend/node_modules
+
+/resources/web
