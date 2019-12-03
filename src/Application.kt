@@ -25,8 +25,8 @@ fun Application.module(testing: Boolean = false) {
 
     routing {
         static {
-            defaultResource("index.html", "web")
-            resources("web")
+            defaultResource("index.html", "web/build")
+            resources("web/build")
         }
         get("/api/cities") {
             call.respond(
