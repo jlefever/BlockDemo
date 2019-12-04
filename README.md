@@ -26,7 +26,7 @@ Or to just run use
 gradlew.bat
 ```
 
-The resulting jar in `build/libs` contains the entire application and could be run with just `java -jar`.
+Gradle build a jar in `build/libs` contains the entire application and could be run with just `java -jar`.
 
 # Deploy
 
