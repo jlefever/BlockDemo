@@ -15,7 +15,7 @@ fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
 
 @Suppress("unused") // Referenced in application.conf
 @kotlin.jvm.JvmOverloads
-fun Application.module(testing: Boolean = false) {
+fun Application.module() {
     install(DefaultHeaders)
     install(CallLogging)
     install(ContentNegotiation) {
@@ -65,10 +65,6 @@ fun Application.module(testing: Boolean = false) {
             get("is_valid_new_block/{index}") {
                 val index = call.parameters["index"]?.toInt()!!
                 call.respond(isValidNewBlock(blockchain[index], blockchain[index - 1]))
-            }
-            get("is_hash_correct/{index}") {
-                val index = call.parameters["index"]?.toInt()!!
-                call.respond(isHashCorrect(blockchain[index]))
             }
         }
 
