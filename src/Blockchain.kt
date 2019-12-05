@@ -20,7 +20,7 @@ fun createNewChain(): LinkedList<Block> {
     return LinkedList(listOf(genBlock))
 }
 
-fun createNewBlock(prevBlock: Block, data: String): Block {
+fun createNewBlock(prevBlock: Block, data: String = ""): Block {
     val index = prevBlock.index + 1
     val timestamp = getTimestamp()
     val hash = hash(index, prevBlock.hash, timestamp, data)
@@ -33,14 +33,16 @@ fun addBlockToChain(block: Block, chain: LinkedList<Block>): Boolean {
     return true
 }
 
-fun isValidChain(chain: List<Block>) = when {
-    chain.isEmpty() -> true
-    chain.size == 1 -> isHashCorrect(chain[0])
-    else -> {
-        for (i in 1 until chain.size) {
-            if (!isValidNewBlock(chain[i], chain[i - 1])) false
+fun isValidChain(chain: List<Block>): Boolean {
+    when {
+        chain.isEmpty() -> return true
+        chain.size == 1 -> return isHashCorrect(chain[0])
+        else -> {
+            for (i in 1 until chain.size) {
+                if (!isValidNewBlock(chain[i], chain[i - 1])) return false
+            }
+            return true
         }
-        true
     }
 }
 
