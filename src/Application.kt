@@ -36,9 +36,13 @@ fun Application.module() {
         route("ui") {
             post("add") {
                 var block = createNewBlock(blockchain.last(), "")
-                addBlockToChain(block, blockchain)
-                // TODO: Broadcast this block to all peers
-                call.respond(HttpStatusCode.Created, block)
+                if (addBlockToChain(block, blockchain)) {
+                    call.respond(HttpStatusCode.Created, block)
+                }
+                call.respond(
+                    HttpStatusCode.BadRequest,
+                    "Cannot add block. Chain is not in valid state."
+                )
             }
             post("update") {
                 val block = call.receive<Block>()
@@ -51,9 +55,13 @@ fun Application.module() {
                 blockchain[block.index] = block
                 call.respond(HttpStatusCode.OK)
             }
-            post("mine") {
-                // TODO: Implement mine
-                call.respond(HttpStatusCode.OK)
+            post("mine/{index}") {
+                val index = call.parameters["index"]?.toInt()!!
+                val block = blockchain[index]
+                if (mineBlock(block)) {
+                    call.respond(block)
+                }
+                call.respond(HttpStatusCode.NotFound, "Unable to mine block.")
             }
             post("broadcast") {
                 // TODO: Implement broadcast
@@ -65,6 +73,10 @@ fun Application.module() {
             get("is_valid_new_block/{index}") {
                 val index = call.parameters["index"]?.toInt()!!
                 call.respond(isValidNewBlock(blockchain[index], blockchain[index - 1]))
+            }
+            get("is_mined/{index}") {
+                val index = call.parameters["index"]?.toInt()!!
+                call.respond(isMined(blockchain[index]))
             }
         }
 

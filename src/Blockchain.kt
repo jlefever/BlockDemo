@@ -9,28 +9,39 @@ data class Block(
     val index: Int,
     val prevHash: String,
     val timestamp: Long,
-    val data: String
+    val data: String,
+    var nonce: Int
 )
 
 fun createNewChain(): LinkedList<Block> {
-    val genBlock = Block(0, "", getTimestamp(), "")
+    val genBlock = Block(0, "", getTimestamp(), "", 0)
     return LinkedList(listOf(genBlock))
 }
 
 fun createNewBlock(prevBlock: Block, data: String = ""): Block {
     val index = prevBlock.index + 1
-    return Block(index, hash(prevBlock), getTimestamp(), data)
+    return Block(index, hash(prevBlock), getTimestamp(), data, 0)
+}
+
+fun mineBlock(block: Block): Boolean {
+    for (i in Int.MIN_VALUE..Int.MAX_VALUE) {
+        block.nonce = i
+        if (isMined(block)) return true
+    }
+    return false
+    // Optionally, we could update the prevHash of all succeeding blocks.
 }
 
 fun addBlockToChain(block: Block, chain: LinkedList<Block>): Boolean {
-    if (!isValidNewBlock(block, chain.last())) return false
+    if (!isValidChain(chain)) return false
     chain.add(block)
     return true
 }
 
 fun isValidChain(chain: List<Block>): Boolean {
     when {
-        chain.isEmpty() || chain.size == 1 -> return true
+        chain.isEmpty() -> return true
+        chain.size == 1 -> return isMined(chain[0])
         else -> {
             for (i in 1 until chain.size) {
                 if (!isValidNewBlock(chain[i], chain[i - 1])) return false
@@ -43,13 +54,16 @@ fun isValidChain(chain: List<Block>): Boolean {
 fun isValidNewBlock(newBlock: Block, prevBlock: Block) =
     newBlock.index == prevBlock.index + 1
             && newBlock.prevHash == hash(prevBlock)
+            && isMined(newBlock)
+
+fun isMined(block: Block) = hash(block).startsWith("0".repeat(3))
 
 fun hash(block: Block): String {
-    return hash(block.index, block.prevHash, block.timestamp, block.data)
+    return hash(block.index, block.prevHash, block.timestamp, block.data, block.nonce)
 }
 
-fun hash(index: Int, previousHash: String, timestamp: Long, data: String): String {
-    return "$index$previousHash$timestamp$data".hash()
+fun hash(index: Int, previousHash: String, timestamp: Long, data: String, nonce: Int): String {
+    return "$index$previousHash$timestamp$data$nonce".hash()
 }
 
 fun String.hash(algorithm: String = "SHA-256"): String {
