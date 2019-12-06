@@ -2,13 +2,16 @@ package com.example
 
 import com.fasterxml.jackson.databind.SerializationFeature
 import io.ktor.application.*
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.apache.Apache
+import io.ktor.client.features.json.JacksonSerializer
+import io.ktor.client.features.json.JsonFeature
 import io.ktor.response.*
 import io.ktor.features.*
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.content.*
 import io.ktor.jackson.jackson
 import io.ktor.request.receive
-import io.ktor.request.receiveOrNull
 import io.ktor.routing.*
 
 fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
@@ -23,6 +26,14 @@ fun Application.module() {
             enable(SerializationFeature.INDENT_OUTPUT)
         }
     }
+
+    val peers = System.getenv("BDPEERS")?.split(";") ?: emptyList()
+
+    val client = HttpClient(Apache) {
+        install(JsonFeature) { serializer = JacksonSerializer() }
+    }
+
+    val p2p = P2P(peers, client, ConsoleLogger())
 
     var blockchain = createNewChain()
 
@@ -64,7 +75,7 @@ fun Application.module() {
                 call.respond(HttpStatusCode.NotFound, "Unable to mine block.")
             }
             post("broadcast") {
-                // TODO: Implement broadcast
+                p2p.broadcast(blockchain.last)
                 call.respond(HttpStatusCode.OK)
             }
             get("is_valid_chain") {
@@ -78,14 +89,19 @@ fun Application.module() {
                 val index = call.parameters["index"]?.toInt()!!
                 call.respond(isMined(blockchain[index]))
             }
+            get("peers") {
+                call.respond(peers)
+            }
         }
 
         route("p2p") {
             get("blockchain") {
-                // TODO: Should also support only returning last x blocks
                 call.respond(blockchain)
             }
             post("receive") {
+                val block = call.receive<Block>()
+                println("Received block with contents $block")
+                call.respond(HttpStatusCode.OK)
                 // TODO: If this block meets certain conditions, then we will pull the entire blockchain of this peer.
                 // (Instead of pulling the entire chain, we could just pull the most recent x blocks and check that against ours.)
                 // If that blockchain meets certain conditions, then we will replace our blockchain with theirs.
