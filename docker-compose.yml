@@ -4,18 +4,24 @@ services:
   blockdemo_1:
     image: blockdemo:latest
     ports:
-      - "9000:8080"
-    environment:
-      BDPEERS: "http://blockdemo_2:8080;http://blockdemo_3:8080"
-  blockdemo_2:
-    image: blockdemo:latest
-    ports:
       - "9001:8080"
     environment:
-      BDPEERS: "http://blockdemo_1:8080;http://blockdemo_3:8080"
-  blockdemo_3:
+      BDPEERS: "http://blockdemo_2:8080;http://blockdemo_3:8080;http://blockdemo_4:8080"
+  blockdemo_2:
     image: blockdemo:latest
     ports:
       - "9002:8080"
     environment:
-      BDPEERS: "http://blockdemo_1:8080;http://blockdemo_2:8080"
+      BDPEERS: "http://blockdemo_1:8080;http://blockdemo_3:8080;http://blockdemo_4:8080"
+  blockdemo_3:
+    image: blockdemo:latest
+    ports:
+      - "9003:8080"
+    environment:
+      BDPEERS: "http://blockdemo_1:8080;http://blockdemo_2:8080;http://blockdemo_4:8080"
+  blockdemo_4:
+    image: blockdemo:latest
+    ports:
+      - "9004:8080"
+    environment:
+      BDPEERS: "http://blockdemo_1:8080;http://blockdemo_2:8080;http://blockdemo_3:8080"
