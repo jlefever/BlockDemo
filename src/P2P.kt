@@ -27,7 +27,6 @@ class ConsoleLogger : Logger {
 }
 
 class P2P(private val peers: List<String>, private val client: HttpClient, private val logger: Logger) {
-    // Is this async? I don't know kotlin well enough.
     suspend fun broadcast(chain: LinkedList<Block>) {
         logger.logInfo("Broadcasting entire chain to all peers...")
         for (peer in peers) {
