@@ -13,6 +13,8 @@ data class Block(
     var nonce: Int
 )
 
+data class Blockchain(var chain: LinkedList<Block>)
+
 fun createNewChain(): LinkedList<Block> {
     val genBlock = Block(0, "", getTimestamp(), "", 0)
     return LinkedList(listOf(genBlock))
@@ -57,6 +59,8 @@ fun isValidNewBlock(newBlock: Block, prevBlock: Block) =
             && isMined(newBlock)
 
 fun isMined(block: Block) = hash(block).startsWith("0".repeat(3))
+
+fun isInRange(chain: LinkedList<Block>, index: Int) = index >= 0 && index <= chain.last().index
 
 fun hash(block: Block): String {
     return hash(block.index, block.prevHash, block.timestamp, block.data, block.nonce)

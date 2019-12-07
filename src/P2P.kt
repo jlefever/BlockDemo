@@ -8,6 +8,7 @@ import io.ktor.client.response.HttpResponse
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import java.time.LocalDateTime
+import java.util.*
 
 interface Logger {
     fun logInfo(message: String)
@@ -27,8 +28,8 @@ class ConsoleLogger : Logger {
 
 class P2P(private val peers: List<String>, private val client: HttpClient, private val logger: Logger) {
     // Is this async? I don't know kotlin well enough.
-    suspend fun broadcast(block: Block) {
-        logger.logInfo("Broadcasting block ${block.index} to all peers...")
+    suspend fun broadcast(chain: List<Block>) {
+        logger.logInfo("Broadcasting entire chain to all peers...")
         for (peer in peers) {
             val url = "$peer/p2p/receive"
             logger.logInfo("Attempting to post to $url...")
@@ -36,12 +37,27 @@ class P2P(private val peers: List<String>, private val client: HttpClient, priva
                 client.post<HttpResponse> {
                     url(url)
                     contentType(ContentType.Application.Json)
-                    body = block
+                    body = chain
                 }
             } catch (e: ClientRequestException) {
-                logger.logWarning("Could not post to $peer")
+                // Ignore
                 // If we notice our peer is not responding with a success, we could remove them as a peer.
             }
         }
+    }
+
+    fun receive(remoteChain: LinkedList<Block>, localChain: LinkedList<Block>): LinkedList<Block> {
+        if (remoteChain.size <= localChain.size) {
+            logger.logInfo("The received chain is not more recent than ours.")
+            return localChain
+        }
+        logger.logInfo("The received chain is more recent than ours.")
+        logger.logInfo("Validating the received chain...")
+        if (isValidChain(remoteChain)) {
+            logger.logInfo("Received chain is valid. Replacing our chain with the received...")
+            return remoteChain
+        }
+        logger.logInfo("Received chain is not valid. Ignoring received chain...")
+        return localChain
     }
 }

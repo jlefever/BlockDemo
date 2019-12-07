@@ -13,6 +13,7 @@ import io.ktor.http.content.*
 import io.ktor.jackson.jackson
 import io.ktor.request.receive
 import io.ktor.routing.*
+import java.util.*
 
 fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
 
@@ -33,9 +34,11 @@ fun Application.module() {
         install(JsonFeature) { serializer = JacksonSerializer() }
     }
 
-    val p2p = P2P(peers, client, ConsoleLogger())
+    val logger = ConsoleLogger()
 
-    var blockchain = createNewChain()
+    val p2p = P2P(peers, client, logger)
+
+    val blockchain = Blockchain(createNewChain())
 
     routing {
         // Serve frontend javascript application
@@ -46,48 +49,67 @@ fun Application.module() {
 
         route("ui") {
             post("add") {
-                var block = createNewBlock(blockchain.last(), "")
-                if (addBlockToChain(block, blockchain)) {
+                var block = createNewBlock(blockchain.chain.last(), "")
+
+                if (addBlockToChain(block, blockchain.chain)) {
                     call.respond(HttpStatusCode.Created, block)
+                } else {
+                    call.respond(
+                        HttpStatusCode.BadRequest,
+                        "Cannot add block. Chain is not in valid state."
+                    )
                 }
-                call.respond(
-                    HttpStatusCode.BadRequest,
-                    "Cannot add block. Chain is not in valid state."
-                )
             }
             post("update") {
                 val block = call.receive<Block>()
 
-                if (block.index < 0 || block.index > blockchain.last.index) {
+                if (!isInRange(blockchain.chain, block.index)) {
                     call.respond(HttpStatusCode.BadRequest)
+                } else {
+                    // We might want to consider the case where our blockchain is not indexed at 0
+                    blockchain.chain[block.index] = block
+                    call.respond(HttpStatusCode.OK)
                 }
-
-                // We might want to consider the case where our blockchain is not indexed at 0
-                blockchain[block.index] = block
-                call.respond(HttpStatusCode.OK)
             }
             post("mine/{index}") {
                 val index = call.parameters["index"]?.toInt()!!
-                val block = blockchain[index]
-                if (mineBlock(block)) {
-                    call.respond(block)
+
+                if (!isInRange(blockchain.chain, index)) {
+                    call.respond(HttpStatusCode.BadRequest)
+                } else {
+                    val block = blockchain.chain[index]
+
+                    if (mineBlock(block)) {
+                        call.respond(block)
+                    } else {
+                        call.respond(HttpStatusCode.NotFound, "Unable to mine block.")
+                    }
                 }
-                call.respond(HttpStatusCode.NotFound, "Unable to mine block.")
             }
             post("broadcast") {
-                p2p.broadcast(blockchain.last)
+                p2p.broadcast(blockchain.chain)
                 call.respond(HttpStatusCode.OK)
             }
             get("is_valid_chain") {
-                call.respond(isValidChain(blockchain))
+                call.respond(isValidChain(blockchain.chain))
             }
             get("is_valid_new_block/{index}") {
                 val index = call.parameters["index"]?.toInt()!!
-                call.respond(isValidNewBlock(blockchain[index], blockchain[index - 1]))
+
+                if (!isInRange(blockchain.chain, index)) {
+                    call.respond(HttpStatusCode.BadRequest)
+                } else {
+                    call.respond(isValidNewBlock(blockchain.chain[index], blockchain.chain[index - 1]))
+                }
             }
             get("is_mined/{index}") {
                 val index = call.parameters["index"]?.toInt()!!
-                call.respond(isMined(blockchain[index]))
+
+                if (!isInRange(blockchain.chain, index)) {
+                    call.respond(HttpStatusCode.BadRequest)
+                } else {
+                    call.respond(isMined(blockchain.chain[index]))
+                }
             }
             get("peers") {
                 call.respond(peers)
@@ -99,12 +121,10 @@ fun Application.module() {
                 call.respond(blockchain)
             }
             post("receive") {
-                val block = call.receive<Block>()
-                println("Received block with contents $block")
+                val receivedChain = call.receive<LinkedList<Block>>()
+                logger.logInfo("Received chain of length ${receivedChain.size}")
+                blockchain.chain = LinkedList(p2p.receive(receivedChain, blockchain.chain))
                 call.respond(HttpStatusCode.OK)
-                // TODO: If this block meets certain conditions, then we will pull the entire blockchain of this peer.
-                // (Instead of pulling the entire chain, we could just pull the most recent x blocks and check that against ours.)
-                // If that blockchain meets certain conditions, then we will replace our blockchain with theirs.
             }
         }
     }
