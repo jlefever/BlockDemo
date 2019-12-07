@@ -1,5 +1,6 @@
 import React from "react";
 import Block from "./Block";
+import BlockList from "./BlockList";
 import PageHeading from "./PageHeading";
 import AddBlockButton from "./AddBlockButton";
 import AddBroadcastButton from "./AddBroadcastButton";
@@ -9,7 +10,7 @@ class App extends React.Component {
     super(props);
 
     this.state = {
-      blockChain: [
+      blocks: [
         {
           index: 0,
           timestamp: 1234567,
@@ -25,26 +26,26 @@ class App extends React.Component {
   triggerAddBlockState = () => {
     this.setState({
       ...this.state,
-      blockChain: [
-        ...this.state.blockChain,
+      blocks: [
+        ...this.state.blocks,
         { index: 1, timestamp: 2323, parent: 1, nonce: 1, data: 1, hash: 1 }
       ]
     });
   };
 
   render() {
-    const blocks = this.state.blockChain.map(block => <Block block={block} />);
     return (
-      <div>
-        <>
+      <>
+        <nav className="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
+          <a className="navbar-brand" href="null">Blockchain Demo</a>
+        </nav>
+        <main>
           <PageHeading />
-          <AddBlockButton addBlock={this.triggerAddBlockState} />
-          <AddBroadcastButton addBroadcast={this.triggerAddBroadcastState} />
           <div className="container">
-            <div className="row">{blocks}</div>
+            <BlockList blocks={this.state.blocks} />
           </div>
-        </>
-      </div>
+        </main>
+      </>
     );
   }
 }
