@@ -3,8 +3,8 @@ import Block from "./Block"
 
 class BlockList extends React.Component {
     render() {
-        const blocks = this.props.blocks.map(block => <Block block={block} />);
-        return (<div class="row">{blocks}</div>);
+        const blocks = this.props.blocks.map(block => <Block key={block.index} block={block} handleMineClick={this.props.handleMineClick}/>);
+        return (<div className="row">{blocks}</div>);
     }
 }
 

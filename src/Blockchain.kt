@@ -26,7 +26,11 @@ fun createNewBlock(prevBlock: Block, data: String = ""): Block {
 }
 
 fun mineBlock(block: Block): Boolean {
-    for (i in Int.MIN_VALUE..Int.MAX_VALUE) {
+    if (isMined(block)) {
+        return true;
+    }
+
+    for (i in 0..Int.MAX_VALUE) {
         block.nonce = i
         if (isMined(block)) return true
     }
@@ -58,6 +62,7 @@ fun isValidNewBlock(newBlock: Block, prevBlock: Block) =
             && newBlock.prevHash == hash(prevBlock)
             && isMined(newBlock)
 
+// We hardcode a difficulty of 3
 fun isMined(block: Block) = hash(block).startsWith("0".repeat(3))
 
 fun isInRange(chain: LinkedList<Block>, index: Int) = index >= 0 && index <= chain.last().index
