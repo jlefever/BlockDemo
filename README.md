@@ -29,6 +29,8 @@ gradlew.bat build
 
 Gradle built a jar in `build/libs` that contains the entire application and could be run with just `java -jar`.
 
+IntelliJ can also be used to run/debug this project.
+
 # Deploy
 
 The build process creates a self-contained fat jar. We include a Dockerfile that can use that jar to create a self-contained image that can be deployed on something like Amazon ECS.
@@ -39,4 +41,4 @@ docker build -t blockdemo .
 
 We can run this as a single-instance with `docker run blockdemo:latest` or as a multi-instance with `docker-compose up`.
 
-The single instance is available at http://localhost:8080/ and the multi-instance is available at http://localhost:900X/ where X is the server #.
+The single instance is available at http://localhost:8080/ and the multi-instance is available at http://localhost:900X/ where X is the server #. By default, there are servers 1 through 4.
