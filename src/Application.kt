@@ -52,7 +52,7 @@ fun Application.module() {
                 var block = createNewBlock(blockchain.chain.last(), "")
 
                 if (addBlockToChain(block, blockchain.chain)) {
-                    call.respond(HttpStatusCode.Created, block)
+                    call.respond(HttpStatusCode.Created, toBlockResponse(block, blockchain.chain))
                 } else {
                     call.respond(
                         HttpStatusCode.BadRequest,
@@ -61,13 +61,13 @@ fun Application.module() {
                 }
             }
             post("update") {
-                val block = call.receive<Block>()
+                val req = call.receive<UpdateRequest>()
 
-                if (!isInRange(blockchain.chain, block.index)) {
+                if (!isInRange(blockchain.chain, req.index)) {
                     call.respond(HttpStatusCode.BadRequest)
                 } else {
                     // We might want to consider the case where our blockchain is not indexed at 0
-                    blockchain.chain[block.index] = block
+                    blockchain.chain[req.index].data = req.data
                     call.respond(HttpStatusCode.OK)
                 }
             }
@@ -80,7 +80,7 @@ fun Application.module() {
                     val block = blockchain.chain[index]
 
                     if (mineBlock(block)) {
-                        call.respond(block)
+                        call.respond(toBlockResponse(block, blockchain.chain))
                     } else {
                         call.respond(HttpStatusCode.NotFound, "Unable to mine block.")
                     }
@@ -111,6 +111,9 @@ fun Application.module() {
                     call.respond(isMined(blockchain.chain[index]))
                 }
             }
+            get("blockchain") {
+                call.respond(toChainResponse(blockchain.chain))
+            }
             get("peers") {
                 call.respond(peers)
             }
@@ -118,7 +121,7 @@ fun Application.module() {
 
         route("p2p") {
             get("blockchain") {
-                call.respond(blockchain)
+                call.respond(blockchain.chain)
             }
             post("receive") {
                 val receivedChain = call.receive<LinkedList<Block>>()

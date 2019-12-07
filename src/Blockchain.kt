@@ -9,7 +9,7 @@ data class Block(
     val index: Int,
     val prevHash: String,
     val timestamp: Long,
-    val data: String,
+    var data: String,
     var nonce: Int
 )
 
