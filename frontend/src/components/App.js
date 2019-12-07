@@ -30,15 +30,20 @@ class App extends React.Component {
   }
 
   addBlock = () => {
-    console.log("Calling mine...")
     postData("/ui/add");
     this.refreshBlockchain();
   }
 
   mineBlock = (index) => {
-    console.log("Calling mine with index " + index + "...")
-    console.log(index)
     postData("/ui/mine/" + index).then(res => this.refreshBlockchain());
+  }
+
+  updateBlockData = (index, data) => {
+    postData("/ui/update", { index, data }).then(res => this.refreshBlockchain());
+  }
+
+  broadcast = () => {
+    postData("/ui/broadcast")
   }
 
   render() {
@@ -59,7 +64,10 @@ class App extends React.Component {
               handleAddBlockClick={this.addBlock}
             />
             <div className="container">
-              <BlockList blocks={blocks} handleMineClick={this.mineBlock} />
+              <BlockList
+              blocks={blocks}
+              handleMineClick={this.mineBlock}
+              handleUpdate={this.updateBlockData}/>
             </div>
           </main>
         </>

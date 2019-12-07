@@ -45,7 +45,9 @@ class Block extends React.Component {
               </div>
               <div className="form-group">
                 <label>Data</label>
-                <textarea className="form-control corm-control-sm" value={this.props.data} />
+                <textarea className="form-control corm-control-sm" 
+                value={this.props.block.data}
+                onChange={(e) => this.props.handleUpdate(this.props.block.index, e.target.value, e)}/>
               </div>
               <div className="form-group">
                 <label>Hash</label>
@@ -66,7 +68,7 @@ class Block extends React.Component {
                 />
               </div>
               <div className="form-group">
-                <label>Is Valid Next Block?</label>
+                <label>Is Valid Successor?</label>
                 <input
                   type="text"
                   className="form-control form-control-sm"

@@ -68,7 +68,8 @@ fun Application.module() {
                 } else {
                     // We might want to consider the case where our blockchain is not indexed at 0
                     blockchain.chain[req.index].data = req.data
-                    call.respond(HttpStatusCode.OK)
+                    val res = toBlockResponse(blockchain.chain[req.index], blockchain.chain)
+                    call.respond(HttpStatusCode.OK, res)
                 }
             }
             post("mine/{index}") {
@@ -79,7 +80,7 @@ fun Application.module() {
                 } else {
                     val block = blockchain.chain[index]
 
-                    if (mineBlock(block)) {
+                    if (mineBlock(block, blockchain.chain)) {
                         call.respond(toBlockResponse(block, blockchain.chain))
                     } else {
                         call.respond(HttpStatusCode.NotFound, "Unable to mine block.")
@@ -124,9 +125,10 @@ fun Application.module() {
                 call.respond(blockchain.chain)
             }
             post("receive") {
-                val receivedChain = call.receive<LinkedList<Block>>()
+                val body = call.receive<LinkedList<LinkedHashMap<Any, Any>>>()
+                val receivedChain = LinkedList(body.map { x -> toBlock(x) })
                 logger.logInfo("Received chain of length ${receivedChain.size}")
-                blockchain.chain = LinkedList(p2p.receive(receivedChain, blockchain.chain))
+                blockchain.chain = p2p.receive(receivedChain, blockchain.chain)
                 call.respond(HttpStatusCode.OK)
             }
         }

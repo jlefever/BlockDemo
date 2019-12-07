@@ -7,7 +7,7 @@ import java.util.LinkedList
 
 data class Block(
     val index: Int,
-    val prevHash: String,
+    var prevHash: String,
     val timestamp: Long,
     var data: String,
     var nonce: Int
@@ -25,17 +25,33 @@ fun createNewBlock(prevBlock: Block, data: String = ""): Block {
     return Block(index, hash(prevBlock), getTimestamp(), data, 0)
 }
 
-fun mineBlock(block: Block): Boolean {
+fun mineBlock(block: Block, chain: List<Block>): Boolean {
     if (isMined(block)) {
         return true;
     }
 
     for (i in 0..Int.MAX_VALUE) {
         block.nonce = i
-        if (isMined(block)) return true
+        if (isMined(block)) {
+            recalcuatePrevHashs(chain, block.index + 1)
+            return true
+        }
     }
     return false
     // Optionally, we could update the prevHash of all succeeding blocks.
+
+
+}
+
+fun recalcuatePrevHashs(chain: List<Block>, index: Int) {
+    for(i in index..chain.last().index) {
+        if (i == 0) {
+            // Special case for genesis block
+            chain[0].prevHash = ""
+        } else {
+            chain[i].prevHash = hash(chain[i - 1])
+        }
+    }
 }
 
 fun addBlockToChain(block: Block, chain: LinkedList<Block>): Boolean {
@@ -44,7 +60,7 @@ fun addBlockToChain(block: Block, chain: LinkedList<Block>): Boolean {
     return true
 }
 
-fun isValidChain(chain: List<Block>): Boolean {
+fun isValidChain(chain: LinkedList<Block>): Boolean {
     when {
         chain.isEmpty() -> return true
         chain.size == 1 -> return isMined(chain[0])

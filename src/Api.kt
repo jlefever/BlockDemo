@@ -33,3 +33,14 @@ fun toBlockResponse(block: Block, chain: List<Block>): BlockResponse {
 
 fun toChainResponse(chain: List<Block>) : List<BlockResponse> =
     chain.map { block -> toBlockResponse(block, chain) }
+
+// This is a work around a limitation in the jackson serializer.
+fun toBlock(map: LinkedHashMap<Any, Any>): Block {
+    return Block(
+        map["index"] as Int,
+        map["prevHash"] as String,
+        map["timestamp"] as Long,
+        map["data"] as String,
+        map["nonce"] as Int
+    )
+}
