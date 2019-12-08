@@ -31,7 +31,7 @@ Gradle built a jar in `build/libs` that contains the entire application and coul
 
 IntelliJ can also be used to run/debug this project.
 
-# Deploy
+## Deploy
 
 The build process creates a self-contained fat jar. We include a Dockerfile that can use that jar to create a self-contained image that can be deployed on something like Amazon ECS.
 
