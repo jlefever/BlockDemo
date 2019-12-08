@@ -30,8 +30,7 @@ class App extends React.Component {
   }
 
   addBlock = () => {
-    postData("/ui/add");
-    this.refreshBlockchain();
+    postData("/ui/add").then(res => this.refreshBlockchain());
   }
 
   mineBlock = (index) => {
